@@ -5,7 +5,7 @@ var env_mozdebug= getenv("MOZILLA_DEBUG");
 if (env_user == "it8" || env_user == "exit8"){
     lockPref("browser.startup.homepage","http://intranet.kion.grp/omstill");
 } else {
-    lockPref("browser.startup.homepage","http://google.it");
+    lockPref("browser.startup.homepage","http://intranet.kion.grp");
 }
 
 if (env_mozdebug) {
