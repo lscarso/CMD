@@ -1,5 +1,5 @@
 // set Firefox Default homepage
-var env_user = getenv("USERNAME").substring(0, 2);
+var env_user = getenv("USERNAME").substring(0, 3);
 var env_mozdebug= getenv("MOZILLA_DEBUG");
 
 if (env_user == "it8" || env_user == "exit8"){
