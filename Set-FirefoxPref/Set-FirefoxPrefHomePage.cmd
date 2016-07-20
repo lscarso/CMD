@@ -1,3 +1,8 @@
+:: .SYNOPSIS
+:: Configure Homepage on Firefox for current user
+:: .EXAMPLE
+:: Set-FirefoxPrefHomePage.cmd
+
 @Echo off
 taskkill /im firefox.exe* /f
 
