@@ -1,8 +1,10 @@
 @echo off
 echo * Starting Tagging MKV files
-for %%m in (%~1\*.mkv) do (
+pushd %~1
+for /R %%m in (*.mkv) do (
 echo Changing %%m Title to "%%~nm"
-"C:\Data\mkvtoolnixPortable\mkvtoolnix\mkvpropedit" "%%m" -e info -s title="%%~nm"
+"C:\Data\mkvtoolnixPortable\mkvpropedit" "%%m" -e info -s title="%%~nm"
 echo -----
 )
 echo * Finished
+popd
