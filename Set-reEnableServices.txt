@@ -3,6 +3,7 @@ REG ADD HKCU\SOFTWARE\Microsoft\OneDrive /v DisablePersonalSync /t REG_DWORD /d 
 
 :: Enable Microsoft STORE
 REG ADD HKLM\SOFTWARE\Policies\Microsoft\WindowsStore /v RequirePrivateStoreOnly /t REG_DWORD /d 0
+REG ADD HKLM\SOFTWARE\Policies\Microsoft\WindowsStore /v RemoveWindowsStore /t REG_DWORD /d 0
 
 :: Enable Windows Update
 REG ADD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU /v NoAutoUpdate /t REG_DWORD /d 0
