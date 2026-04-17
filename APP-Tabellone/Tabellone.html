@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Torneo Biliardino - LAINATE</title>
+
+<style>
+:root{
+  --primary:#6E0F4B;
+  --accent1:#3189A1;
+  --accent2:#00B446;
+  --box:#6E0F4B;
+}
+
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+
+body{
+  margin:0;
+  background:url("kion-bg.png") center/cover no-repeat fixed;
+  color:#fff;
+}
+
+header{
+  text-align:center;
+  padding:20px 10px;
+}
+
+header img{
+  height:70px;
+  margin-bottom:10px;
+}
+
+h1{
+  margin:5px 0;
+  font-size:3vw;
+}
+
+h2{
+  margin:0;
+  font-size:1.6vw;
+  font-weight:normal;
+  opacity:.9;
+}
+
+.controls{
+  text-align:center;
+  margin:20px;
+}
+
+.controls input, .controls button{
+  padding:8px;
+  font-size:16px;
+  margin:5px;
+}
+
+button{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+
+button:hover{opacity:.85}
+
+.bracket{
+  display:flex;
+  justify-content:space-between;
+  padding:20px;
+  height:calc(100vh - 260px);
+}
+
+.girone{
+  width:42%;
+  display:flex;
+}
+
+.round{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-around;
+}
+
+.match{
+  background:rgba(255,255,255,0.12);
+  border-left:4px solid var(--accent1);
+  padding:6px;
+  margin:10px;
+  border-radius:6px;
+}
+
+.team{
+  display:flex;
+  align-items:center;
+  margin:3px 0;
+}
+
+.team input{
+  flex:1;
+  padding:4px;
+  font-size:14px;
+}
+
+.team .score{
+  width:35px;
+  margin-left:5px;
+}
+
+.team button{
+  margin-left:5px;
+  background:var(--accent2);
+}
+
+.time{
+  margin-top:5px;
+}
+
+.time input{
+  width:100%;
+  padding:4px;
+  font-size:13px;
+}
+
+.bye{
+  margin-left:5px;
+  cursor:pointer;
+  font-size:18px;
+  opacity:.4;
+}
+
+.bye.active{
+  opacity:1;
+  color:var(--accent2);
+}
+
+.center{
+  width:16%;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.trophy{
+  font-size:80px;
+}
+
+.final input{
+  width:90%;
+  padding:6px;
+  margin:5px auto;
+}
+
+@media (max-width:1400px){
+  h1{font-size:4vw}
+  h2{font-size:2vw}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="kion-logo.png" alt="KION">
+  <h1>Torneo Biliardino - LAINATE</h1>
+  <h2>KION PLAY-OFFS 2026</h2>
+</header>
+
+<div class="controls">
+  Numero squadre:
+  <input type="number" id="numTeams" min="2" value="8">
+  <button onclick="setup()">Crea Torneo</button>
+</div>
+
+<div class="bracket">
+
+  <!-- GIRONE A -->
+  <div class="girone" id="gironeA"></div>
+
+  <!-- FINALE -->
+  <div class="center">
+    <div class="trophy">🏆</div>
+    <div class="final">
+      <input placeholder="Finalista A">
+      <input placeholder="Finalista B">
+      <input placeholder="Risultato finale">
+      <input placeholder="Tempo di gioco">
+    </div>
+  </div>
+
+  <!-- GIRONE B -->
+  <div class="girone" id="gironeB"></div>
+
+</div>
+
+<script>
+function setup(){
+  const n = parseInt(numTeams.value);
+  if(n<2)return;
+
+  let teams = [];
+  for(let i=0;i<n;i++){
+    teams.push("Squadra "+(i+1));
+  }
+
+  teams = shuffle(teams);
+
+  const mid = Math.ceil(teams.length/2);
+  buildGirone("gironeA", teams.slice(0,mid));
+  buildGirone("gironeB", teams.slice(mid));
+}
+
+function buildGirone(id, teams){
+  const container = document.getElementById(id);
+  container.innerHTML = "";
+
+  let rounds = Math.ceil(Math.log2(teams.length));
+  let slots = Math.pow(2, rounds);
+
+  while(teams.length < slots) teams.push("");
+
+  for(let r=0;r<rounds;r++){
+    const col = document.createElement("div");
+    col.className="round";
+
+    const matches = Math.pow(2, rounds-r-1);
+    for(let m=0;m<matches;m++){
+      col.appendChild(createMatch());
+    }
+    container.appendChild(col);
+  }
+
+  // primo turno
+  const firstRound = container.querySelector(".round");
+  const inputs = firstRound.querySelectorAll(".team input");
+  teams.forEach((t,i)=>inputs[i].value=t);
+}
+
+function createMatch(){
+  const match = document.createElement("div");
+  match.className="match";
+
+  for(let i=0;i<2;i++){
+    const team = document.createElement("div");
+    team.className="team";
+
+    const input = document.createElement("input");
+    input.placeholder="Team name";
+
+    const score = document.createElement("input");
+    score.className="score";
+    score.placeholder="0";
+
+    const win = document.createElement("button");
+    win.textContent="✔";
+    win.onclick=()=>advance(match,input.value);
+
+    const bye = document.createElement("span");
+    bye.textContent="★";
+    bye.className="bye";
+    bye.onclick=()=>bye.classList.toggle("active");
+
+    team.append(input,score,win,bye);
+    match.appendChild(team);
+  }
+
+  const time = document.createElement("div");
+  time.className="time";
+  time.innerHTML='<input placeholder="Tempo di gioco">';
+  match.appendChild(time);
+
+  return match;
+}
+
+function advance(match, team){
+  const next = match.parentElement.nextElementSibling;
+  if(!next)return;
+  const target = next.querySelector("input");
+  if(target && !target.value) target.value = team;
+}
+
+function shuffle(a){
+  return a.sort(()=>Math.random()-0.5);
+}
+</script>
+
+</body>
+</html>
