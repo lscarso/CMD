@@ -26,19 +26,19 @@ body{
   margin:0;
   color:var(--text);
   background: var(--primary);
-  overflow:hidden; /* TV 55" */
+  overflow:hidden; /* ottimizzato per monitor/TV */
 }
 
-/* Sfondo: immagine più opaca + overlay forte per leggibilità */
+/* Sfondo: immagine più “spenta” + overlay opaco per leggibilità */
 .bg{
   position:fixed; inset:0;
   background: url("kion-bg.png") center/cover no-repeat;
-  opacity:.14;                 /* <- più opaco */
+  opacity:.12;
   pointer-events:none;
 }
 .overlay{
   position:fixed; inset:0;
-  background: rgba(110,15,75,.80); /* <- overlay più “coprente” */
+  background: rgba(110,15,75,.84);
   pointer-events:none;
 }
 
@@ -52,8 +52,8 @@ body{
 /* HEADER: logo a sinistra, titolo centrato */
 header{
   position:relative;
-  padding:12px 16px 6px;
-  min-height:72px;
+  padding:10px 16px 4px;
+  min-height:68px;
 }
 header .logo{
   position:absolute;
@@ -93,9 +93,11 @@ header h2{
   border-radius:10px;
   background: rgba(0,0,0,.18);
   backdrop-filter: blur(2px);
+  flex-wrap:wrap;
+  justify-content:center;
 }
 .controls label{ font-size:16px; opacity:.95; }
-.controls input{
+.controls input[type="number"]{
   padding:8px 10px;
   font-size:16px;
   width:110px;
@@ -117,26 +119,57 @@ header h2{
 }
 .controls button:hover{ opacity:.92; }
 
+.teamlist{
+  width: min(920px, calc(100vw - 40px));
+  margin: 10px auto 0;
+  padding:10px;
+  border-radius:12px;
+  background: rgba(0,0,0,.18);
+  display:none;
+}
+.teamlist .grid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap:8px;
+}
+.teamlist .grid input{
+  padding:8px 10px;
+  font-size:14px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.10);
+  color:#fff;
+  outline:none;
+}
+.teamlist .grid input::placeholder{ color: rgba(255,255,255,.7); }
+.teamlist .actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-top:10px;
+}
+
 /* LAYOUT TABELLONE */
 .bracket{
   flex:1;
   display:flex;
   justify-content:space-between;
-  padding:10px 14px 14px;
+  padding:8px 12px 12px;
   gap:12px;
   min-height:0;
 }
 
+/* Gironi */
 .girone{
-  width:43%;
+  width:44%;
   position:relative;
   display:flex;
   gap:10px;
   min-height:0;
 }
-
 .girone.reverse{ flex-direction: row-reverse; }
 
+/* Colonne turni */
 .round{
   flex:1;
   display:flex;
@@ -145,7 +178,7 @@ header h2{
   gap:16px;
   min-width:0;
   position:relative;
-  z-index:2; /* sopra linee */
+  z-index:2; /* sopra le linee SVG */
 }
 
 .match{
@@ -155,6 +188,7 @@ header h2{
   box-shadow: 0 4px 14px rgba(0,0,0,.16);
 }
 
+/* Team row */
 .team{
   display:flex;
   align-items:center;
@@ -189,7 +223,7 @@ header h2{
   font-size:14px;
 }
 
-/* Indicatore vittoria: circolare toggle */
+/* Indicatori circolari */
 .dot{
   width:16px;
   height:16px;
@@ -204,9 +238,7 @@ header h2{
 .dot.win{ background: var(--win); }
 .dot.bye{ background: var(--bye); }
 
-.dot.active{
-  opacity:1;
-}
+.dot.active{ opacity:1; }
 .dot.win.active{
   box-shadow: 0 0 0 3px rgba(0,180,70,.25), 0 0 10px rgba(0,180,70,.85);
 }
@@ -228,27 +260,28 @@ header h2{
 }
 .time input::placeholder{ color: rgba(255,255,255,.7); }
 
-/* CENTRO / FINALE - ridotta */
+/* CENTRO / FINALE - più compatto */
 .center{
-  width:14%;                 /* <- più stretta */
+  width:13.5%;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
   text-align:center;
   gap:8px;
-  min-width: 180px;          /* evita troppo stretto */
+  min-width: 170px;
 }
-.trophy{ font-size:62px; }   /* <- un po’ più piccola */
+.trophy{ font-size:56px; }
+
 .final{
   width:100%;
   background: rgba(0,0,0,.18);
   border-radius:12px;
-  padding:8px;               /* <- ridotto */
+  padding:7px;
 }
 .final input{
   width:100%;
-  padding:7px 9px;           /* <- ridotto */
+  padding:7px 9px;
   margin:5px 0;
   border-radius:10px;
   border:1px solid rgba(255,255,255,.25);
@@ -259,7 +292,7 @@ header h2{
 }
 .final input::placeholder{ color: rgba(255,255,255,.7); }
 
-/* SVG linee */
+/* SVG per linee */
 svg.lines{
   position:absolute;
   inset:0;
@@ -269,13 +302,19 @@ svg.lines{
   pointer-events:none;
 }
 
-/* Ottimizzazione per schermi grandi */
+/* Grandi schermi */
 @media (min-width: 1900px){
   .team input.name{ font-size:16px; }
   .team input.score{ font-size:16px; }
   .controls label, .controls button, .controls input { font-size:18px; }
   header .logo{ height:58px; }
-  .center{ min-width: 210px; }
+  .center{ min-width: 200px; }
+  .trophy{ font-size:62px; }
+}
+
+/* Se la lista squadre è lunga, su schermi piccoli scende a 2 colonne */
+@media (max-width: 1100px){
+  .teamlist .grid{ grid-template-columns: repeat(2, minmax(160px, 1fr)); }
 }
 </style>
 </head>
@@ -286,22 +325,32 @@ svg.lines{
 
   <div class="app">
     <header>
-      <img class="logo" src="kion-logo.png" alt="KION" />
+      <img class="logo" src="kion-logo.png" alt="KION Logo">
       <div class="titles">
         <h1>Torneo Biliardino - LAINATE</h1>
         <h2>KION PLAY-OFFS 2026</h2>
       </div>
     </header>
 
+    <!-- Controlli: numero squadre -> inserimento nomi -> genera -->
     <div class="controls" id="controls">
       <div class="card">
         <label for="numTeams">Numero squadre:</label>
         <input type="number" id="numTeams" min="2" value="8">
+        <button id="btnPrepare" type="button">Inserisci Nomi</button>
         <button id="btnGenerate" type="button">Genera Tabellone</button>
+      </div>
+
+      <div class="teamlist" id="teamlist">
+        <div class="grid" id="teamGrid"></div>
+        <div class="actions">
+          <button id="btnRandomFill" type="button">Compila automatico</button>
+          <button id="btnShuffle" type="button">Randomizza ordine</button>
+        </div>
       </div>
     </div>
 
-    <div class="bracket">
+    <div class="bracket" id="bracket">
       <div class="girone" id="A">
         <svg class="lines"></svg>
       </div>
@@ -332,12 +381,77 @@ function shuffle(arr){
   return arr;
 }
 function clampTeamName(v){ return (v || "").toString().slice(0,15); }
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-/* Stato gironi: serve per mapping corretto */
+/* Stato gironi */
 const bracketState = {
   A: { rounds: 0, reverse: false },
   B: { rounds: 0, reverse: true  }
 };
+
+/* Mapping deterministico: match m -> nextMatch floor(m/2), slot m%2 */
+function getTargetSlot(matchIndex){
+  return {
+    nextMatchIndex: Math.floor(matchIndex / 2),
+    nextTeamSlot: (matchIndex % 2) // 0 sopra, 1 sotto
+  };
+}
+
+function findRoundColumn(gid, roundIndex){
+  const g = document.getElementById(gid);
+  return Array.from(g.children).find(el =>
+    el.classList && el.classList.contains("round") && (+el.dataset.round === roundIndex)
+  );
+}
+
+function getFinalInputForGirone(gid){
+  return document.getElementById(gid === "A" ? "finalA" : "finalB");
+}
+
+/* ---------------- UI: Lista squadre ---------------- */
+let lastPreparedN = 0;
+
+function prepareTeamInputs(){
+  const n = parseInt(document.getElementById("numTeams").value || "0", 10);
+  if(!n || n < 2) return;
+
+  const teamlist = document.getElementById("teamlist");
+  const grid = document.getElementById("teamGrid");
+  grid.innerHTML = "";
+
+  for(let i=0;i<n;i++){
+    const inp = document.createElement("input");
+    inp.maxLength = 15;
+    inp.placeholder = `Squadra ${i+1}`;
+    inp.dataset.index = i;
+    grid.appendChild(inp);
+  }
+
+  teamlist.style.display = "block";
+  lastPreparedN = n;
+}
+
+function getTeamsFromInputs(){
+  const grid = document.getElementById("teamGrid");
+  const inputs = Array.from(grid.querySelectorAll("input"));
+  const teams = inputs.map((inp, i) => clampTeamName(inp.value) || `Squadra ${i+1}`);
+  return teams;
+}
+
+function fillDefaultNames(){
+  const grid = document.getElementById("teamGrid");
+  const inputs = Array.from(grid.querySelectorAll("input"));
+  inputs.forEach((inp, i) => {
+    if(!inp.value) inp.value = `Squadra ${i+1}`;
+  });
+}
+
+function shuffleInputOrder(){
+  const teams = getTeamsFromInputs();
+  shuffle(teams);
+  const inputs = Array.from(document.getElementById("teamGrid").querySelectorAll("input"));
+  inputs.forEach((inp, i) => inp.value = teams[i] || "");
+}
 
 /* ---------------- Match factory ---------------- */
 function createMatch(gid, roundIndex, matchIndex){
@@ -365,28 +479,54 @@ function createMatch(gid, roundIndex, matchIndex){
       score.value = score.value.replace(/\D/g,'').slice(0,2);
     });
 
-    // indicatore VITTORIA (toggle)
+    // Indicatore VITTORIA (toggle) - circolare
     const winDot = document.createElement("div");
     winDot.className = "dot win";
     winDot.title = "Vittoria";
+
     const sourceId = `${gid}-r${roundIndex}-m${matchIndex}-t${teamSlot}`;
     winDot.dataset.sourceId = sourceId;
+    winDot.dataset.gid = gid;
+    winDot.dataset.round = roundIndex;
+    winDot.dataset.match = matchIndex;
+    winDot.dataset.team = teamSlot;
 
     winDot.addEventListener("click", () => {
+      const wasOn = winDot.classList.contains("active");
+      // toggle
       winDot.classList.toggle("active");
       const isOn = winDot.classList.contains("active");
+
       const teamName = clampTeamName(name.value);
 
       if(isOn){
-        // attivo: avanza
+        // Se attivo, disattiva eventuale altro vincitore nello stesso match (spec: un solo vincitore)
+        const otherWinDots = match.querySelectorAll(".dot.win");
+        otherWinDots.forEach(d => {
+          if(d !== winDot && d.classList.contains("active")){
+            d.classList.remove("active");
+            rollbackWinner(
+              d.dataset.gid,
+              parseInt(d.dataset.round,10),
+              parseInt(d.dataset.match,10),
+              parseInt(d.dataset.team,10),
+              d.dataset.sourceId
+            );
+          }
+        });
+
+        // Avanza vincitore
         advanceWinner(gid, roundIndex, matchIndex, teamSlot, teamName, sourceId);
       }else{
-        // disattivo: se lo slot successivo era stato riempito da questo sourceId, lo svuota
+        // rollback solo se era stato messo da questo dot
         rollbackWinner(gid, roundIndex, matchIndex, teamSlot, sourceId);
       }
+
+      // ridisegno linee (in caso di piccoli shift)
+      requestAnimationFrame(() => { drawLines("A"); drawLines("B"); });
     });
 
-    // ripescaggio (toggle) - indipendente
+    // Ripescaggio (toggle) tondo arancione
     const byeDot = document.createElement("div");
     byeDot.className = "dot bye";
     byeDot.title = "Ripescaggio";
@@ -406,32 +546,14 @@ function createMatch(gid, roundIndex, matchIndex){
   return match;
 }
 
-/* ---------------- Avanzamento/rollback (FIX semifinale->finale) ---------------- */
-function getTargetSlot(roundIndex, matchIndex){
-  // mapping standard: due match confluiscono in uno (m/2), slot in base a pari/dispari
-  return {
-    nextMatchIndex: Math.floor(matchIndex / 2),
-    nextTeamSlot: (matchIndex % 2) // 0 = sopra, 1 = sotto
-  };
-}
-
-function findRoundColumn(gid, roundIndex){
-  const g = document.getElementById(gid);
-  // le colonne round sono children NON svg
-  return Array.from(g.children).find(el => el.classList && el.classList.contains("round") && +el.dataset.round === roundIndex);
-}
-
-function getFinalInputForGirone(gid){
-  return document.getElementById(gid === "A" ? "finalA" : "finalB");
-}
-
+/* ---------------- Avanzamento/rollback (fino a finale centrale) ---------------- */
 function advanceWinner(gid, roundIndex, matchIndex, teamSlot, teamName, sourceId){
   if(!teamName) return;
 
   const rounds = bracketState[gid].rounds;
   const isLastRound = (roundIndex === rounds - 1);
 
-  // Se è ultimo round del girone, scrive nel finalista centrale
+  // Ultimo round del girone -> finale centrale
   if(isLastRound){
     const fin = getFinalInputForGirone(gid);
     fin.value = teamName;
@@ -439,9 +561,8 @@ function advanceWinner(gid, roundIndex, matchIndex, teamSlot, teamName, sourceId
     return;
   }
 
-  // Altrimenti avanza al round successivo in modo deterministico (FIX bug semifinali)
-  const { nextMatchIndex, nextTeamSlot } = getTargetSlot(roundIndex, matchIndex);
-
+  // Avanza al round successivo nello slot corretto
+  const { nextMatchIndex, nextTeamSlot } = getTargetSlot(matchIndex);
   const nextCol = findRoundColumn(gid, roundIndex + 1);
   if(!nextCol) return;
 
@@ -449,19 +570,12 @@ function advanceWinner(gid, roundIndex, matchIndex, teamSlot, teamName, sourceId
   const targetMatch = nextMatches[nextMatchIndex];
   if(!targetMatch) return;
 
-  const targetNameInputs = targetMatch.querySelectorAll("input.name");
-  const targetInput = targetNameInputs[nextTeamSlot];
-  if(!targetInput) return;
+  const targetInputs = targetMatch.querySelectorAll("input.name");
+  const target = targetInputs[nextTeamSlot];
+  if(!target) return;
 
-  // Sovrascrive se vuoto o se era stato messo dallo stesso source
-  if(!targetInput.value || targetInput.dataset.from === sourceId){
-    targetInput.value = teamName;
-    targetInput.dataset.from = sourceId;
-  }else{
-    // se già occupato da altro, sovrascrivo comunque (più pratico in un tabellone live)
-    targetInput.value = teamName;
-    targetInput.dataset.from = sourceId;
-  }
+  target.value = teamName;
+  target.dataset.from = sourceId;
 }
 
 function rollbackWinner(gid, roundIndex, matchIndex, teamSlot, sourceId){
@@ -477,7 +591,7 @@ function rollbackWinner(gid, roundIndex, matchIndex, teamSlot, sourceId){
     return;
   }
 
-  const { nextMatchIndex, nextTeamSlot } = getTargetSlot(roundIndex, matchIndex);
+  const { nextMatchIndex, nextTeamSlot } = getTargetSlot(matchIndex);
   const nextCol = findRoundColumn(gid, roundIndex + 1);
   if(!nextCol) return;
 
@@ -485,20 +599,21 @@ function rollbackWinner(gid, roundIndex, matchIndex, teamSlot, sourceId){
   const targetMatch = nextMatches[nextMatchIndex];
   if(!targetMatch) return;
 
-  const targetNameInputs = targetMatch.querySelectorAll("input.name");
-  const targetInput = targetNameInputs[nextTeamSlot];
-  if(!targetInput) return;
+  const targetInputs = targetMatch.querySelectorAll("input.name");
+  const target = targetInputs[nextTeamSlot];
+  if(!target) return;
 
-  if(targetInput.dataset.from === sourceId){
-    targetInput.value = "";
-    delete targetInput.dataset.from;
+  if(target.dataset.from === sourceId){
+    target.value = "";
+    delete target.dataset.from;
   }
 }
 
 /* ---------------- Build girone ---------------- */
 function buildGirone(gid, teams){
   const g = document.getElementById(gid);
-  // lascia svg lines, rimuove il resto
+
+  // lascia svg, rimuove le colonne precedenti
   Array.from(g.children).forEach(ch => { if(!ch.classList.contains("lines")) ch.remove(); });
 
   const rounds = Math.ceil(Math.log2(Math.max(2, teams.length)));
@@ -527,102 +642,217 @@ function buildGirone(gid, teams){
   drawLines(gid);
 }
 
-/* ---------------- SVG lines (robuste, non frammentate) ---------------- */
+/* ---------------- Linee SVG (SPECULARI + FUORI BOX) ----------------
+   Regola richiesta:
+   - Girone A: bordo destro turno precedente -> bordo sinistro turno successivo
+   - Girone B: bordo sinistro turno precedente -> bordo destro turno successivo
+   Sempre fuori box e instradate nel corridoio tra le colonne.
+*/
 function drawLines(gid){
   const g = document.getElementById(gid);
   const svg = g.querySelector("svg.lines");
   if(!svg) return;
 
-  // pulisci
   svg.innerHTML = "";
 
   const rounds = bracketState[gid].rounds;
   if(rounds <= 1) return;
 
   const gRect = g.getBoundingClientRect();
+  const reverse = bracketState[gid].reverse; // A=false, B=true
 
-  function centerRight(el){
+  // Direzione di flusso: A (+) verso destra, B (-) verso sinistra
+  const dir = reverse ? -1 : +1;
+
+  // Parametri (puoi ritoccarli)
+  const OUT = 12;      // quanto fuori dal box (punto di attacco)
+  const PAD = 20;      // tratto orizzontale nella direzione di flusso (prima/dopo la corsia)
+  const MARGIN = 10;   // margine di sicurezza dal bordo delle colonne (evita contatto coi box)
+  const STROKE = 2;
+
+  // Anchor esterni
+  function rightOutside(el){
     const r = el.getBoundingClientRect();
-    return { x: (r.right - gRect.left), y: (r.top - gRect.top + r.height/2) };
+    return { x: (r.right - gRect.left) + OUT, y: (r.top - gRect.top) + r.height/2 };
   }
-  function centerLeft(el){
+  function leftOutside(el){
     const r = el.getBoundingClientRect();
-    return { x: (r.left - gRect.left), y: (r.top - gRect.top + r.height/2) };
+    return { x: (r.left - gRect.left) - OUT, y: (r.top - gRect.top) + r.height/2 };
   }
 
-  // per ogni round r -> r+1 collego match m -> floor(m/2)
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+  function addPath(d){
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill","none");
+    path.setAttribute("stroke","rgba(255,255,255,.85)");
+    path.setAttribute("stroke-width", String(STROKE));
+    path.setAttribute("stroke-linecap","round");
+    path.setAttribute("stroke-linejoin","round");
+    svg.appendChild(path);
+  }
+
+  // ---------------------------
+  // Link tra round: n -> n+1
+  // ---------------------------
   for(let r=0; r<rounds-1; r++){
     const col = findRoundColumn(gid, r);
     const nextCol = findRoundColumn(gid, r+1);
     if(!col || !nextCol) continue;
 
+    const colRect = col.getBoundingClientRect();
+    const nextRect = nextCol.getBoundingClientRect();
+
+    // Corridoio reale tra le due colonne (in coordinate del girone)
+    // A: tra col.right e nextCol.left
+    // B: tra nextCol.right e col.left
+    let corridorMin, corridorMax;
+    if(!reverse){
+      corridorMin = (colRect.right - gRect.left) + MARGIN;
+      corridorMax = (nextRect.left - gRect.left) - MARGIN;
+    }else{
+      corridorMin = (nextRect.right - gRect.left) + MARGIN;
+      corridorMax = (colRect.left - gRect.left) - MARGIN;
+    }
+
+    const safeMin = Math.min(corridorMin, corridorMax);
+    const safeMax = Math.max(corridorMin, corridorMax);
+
+    // Corsia centrale nel corridoio
+    const railX = clamp((corridorMin + corridorMax) / 2, safeMin, safeMax);
+
     const matches = col.querySelectorAll(".match");
     const nextMatches = nextCol.querySelectorAll(".match");
 
     matches.forEach((matchEl, mIdx) => {
-      const targetIdx = Math.floor(mIdx/2);
+      const targetIdx = Math.floor(mIdx / 2);
       const targetEl = nextMatches[targetIdx];
       if(!targetEl) return;
 
-      // direzione: girone A (sx->dx): start=right, end=left
-      // girone B (reverse) (dx->sx): start=left, end=right
-      const reverse = bracketState[gid].reverse;
-      const start = reverse ? centerLeft(matchEl) : centerRight(matchEl);
-      const end   = reverse ? centerRight(targetEl) : centerLeft(targetEl);
+      // ✅ Start/End secondo richiesta:
+      // Girone A: start dal bordo destro del match n, end al bordo sinistro del match n+1
+      // Girone B: start dal bordo sinistro del match n, end al bordo destro del match n+1
+      const start = reverse ? leftOutside(matchEl) : rightOutside(matchEl);
+      const end   = reverse ? rightOutside(targetEl) : leftOutside(targetEl);
 
-      // path a gomito: start -> midX -> end (verticale)
-      const midX = reverse ? (start.x - 18) : (start.x + 18);
+      // PAD coerente (stessa direzione del flusso) sia in uscita che in ingresso:
+      // A: pad verso destra => end deve essere raggiunto da sinistra (x3 < end.x)
+      // B: pad verso sinistra => end deve essere raggiunto da destra (x3 > end.x)
+      const x1 = clamp(start.x + dir * PAD, safeMin, safeMax);
+      const x3 = clamp(end.x   - dir * PAD, safeMin, safeMax);
 
+      // Path: start -> PAD -> rail -> vertical -> PAD -> end
+      // Tutti i punti intermedi (x1, railX, x3) stanno nel corridoio => mai sopra i box.
       const d = [
         `M ${start.x} ${start.y}`,
-        `L ${midX} ${start.y}`,
-        `L ${midX} ${end.y}`,
+        `L ${x1} ${start.y}`,
+        `L ${railX} ${start.y}`,
+        `L ${railX} ${end.y}`,
+        `L ${x3} ${end.y}`,
         `L ${end.x} ${end.y}`
       ].join(" ");
 
-      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
-      path.setAttribute("d", d);
-      path.setAttribute("fill","none");
-      path.setAttribute("stroke","rgba(255,255,255,.85)");
-      path.setAttribute("stroke-width","2");
-      path.setAttribute("stroke-linecap","round");
-      path.setAttribute("stroke-linejoin","round");
-      svg.appendChild(path);
+      addPath(d);
     });
   }
-}
 
+  // ---------------------------
+  // Collegamento alla finale (finalA / finalB)
+  // ---------------------------
+  const lastCol = findRoundColumn(gid, rounds - 1);
+  const lastMatch = lastCol ? lastCol.querySelector(".match") : null;
+
+  const finalInput = document.getElementById(gid === "A" ? "finalA" : "finalB");
+  if(!lastMatch || !finalInput) return;
+
+  // start dall’ultimo match del girone:
+  const startF = reverse ? leftOutside(lastMatch) : rightOutside(lastMatch);
+
+  // end sul box finale: A entra a sinistra di finalA, B entra a destra di finalB
+  const fr = finalInput.getBoundingClientRect();
+  const endF = {
+    x: (!reverse ? (fr.left - gRect.left) - OUT : (fr.right - gRect.left) + OUT),
+    y: (fr.top - gRect.top) + fr.height / 2
+  };
+
+  // Corridoio tra ultimo round e box finale
+  const lastRect = lastCol.getBoundingClientRect();
+  let corridorMinF, corridorMaxF;
+  if(!reverse){
+    corridorMinF = (lastRect.right - gRect.left) + MARGIN;
+    corridorMaxF = (fr.left - gRect.left) - MARGIN;
+  }else{
+    corridorMinF = (fr.right - gRect.left) + MARGIN;
+    corridorMaxF = (lastRect.left - gRect.left) - MARGIN;
+  }
+
+  const safeMinF = Math.min(corridorMinF, corridorMaxF);
+  const safeMaxF = Math.max(corridorMinF, corridorMaxF);
+  const railXF = clamp((corridorMinF + corridorMaxF)/2, safeMinF, safeMaxF);
+
+  const x1F = clamp(startF.x + dir * PAD, safeMinF, safeMaxF);
+  const x3F = clamp(endF.x   - dir * PAD, safeMinF, safeMaxF);
+
+  const dF = [
+    `M ${startF.x} ${startF.y}`,
+    `L ${x1F} ${startF.y}`,
+    `L ${railXF} ${startF.y}`,
+    `L ${railXF} ${endF.y}`,
+    `L ${x3F} ${endF.y}`,
+    `L ${endF.x} ${endF.y}`
+  ].join(" ");
+
+  addPath(dF);
+}
 /* ---------------- Setup principale ---------------- */
-function setup(){
-  const numTeamsEl = document.getElementById("numTeams");
-  const n = parseInt(numTeamsEl?.value || "0", 10);
+function generate(){
+  const n = parseInt(document.getElementById("numTeams").value || "0", 10);
   if(!n || n < 2) return;
 
-  let teams = Array.from({length:n}, (_,i)=>`Squadra ${i+1}`);
+  // se non hai premuto “Inserisci Nomi”, li preparo al volo
+  if(lastPreparedN !== n){
+    prepareTeamInputs();
+    fillDefaultNames();
+  }
+
+  let teams = getTeamsFromInputs();
+  // randomizza primo turno
   shuffle(teams);
 
   const mid = Math.ceil(teams.length/2);
   buildGirone("A", teams.slice(0, mid));
   buildGirone("B", teams.slice(mid));
 
-  // Rimuovi controlli dopo build (così non rompe)
+  // rimuovi controlli
   const controls = document.getElementById("controls");
   if(controls) controls.remove();
 
-  // ridisegna linee dopo un frame (layout stabilizzato)
-  requestAnimationFrame(() => {
-    drawLines("A");
-    drawLines("B");
-  });
+  // redraw linee a layout stabilizzato (robustezza)
+  requestAnimationFrame(() => { drawLines("A"); drawLines("B"); });
+  setTimeout(() => { drawLines("A"); drawLines("B"); }, 60);
 }
 
-/* Bind + resize */
-document.getElementById("btnGenerate").addEventListener("click", setup);
+/* Bind buttons */
+document.getElementById("btnPrepare").addEventListener("click", prepareTeamInputs);
+document.getElementById("btnGenerate").addEventListener("click", generate);
+document.getElementById("btnRandomFill").addEventListener("click", () => {
+  prepareTeamInputs();
+  fillDefaultNames();
+});
+document.getElementById("btnShuffle").addEventListener("click", shuffleInputOrder);
 
+/* Resize: ridisegna sempre le linee */
 window.addEventListener("resize", () => {
-  // ridisegna sempre le linee su resize
   drawLines("A");
   drawLines("B");
+});
+
+/* Consigliato: ridisegna su input (nomi/punteggi/tempo) */
+document.addEventListener("input", (e) => {
+  if(!document.getElementById("controls")){ // solo dopo generazione
+    requestAnimationFrame(() => { drawLines("A"); drawLines("B"); });
+  }
 });
 </script>
 </body>
