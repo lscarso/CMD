@@ -9,64 +9,54 @@
   --primary:#6E0F4B;
   --accent1:#3189A1;
   --accent2:#00B446;
-  --box:#6E0F4B;
+  --bye:#FF9800;
 }
 
 *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
 
 body{
   margin:0;
-  background:url("kion-bg.png") center/cover no-repeat fixed;
+  background:#6E0F4B url("kion-bg.png") center/cover no-repeat fixed;
   color:#fff;
 }
 
 header{
   text-align:center;
-  padding:20px 10px;
+  padding:20px;
 }
 
 header img{
-  height:70px;
-  margin-bottom:10px;
+  height:80px;
+  display:block;
+  margin:0 auto 10px;
 }
 
-h1{
-  margin:5px 0;
-  font-size:3vw;
-}
-
-h2{
-  margin:0;
-  font-size:1.6vw;
-  font-weight:normal;
-  opacity:.9;
-}
+h1{margin:0;font-size:48px}
+h2{margin:5px 0 0;font-size:24px;font-weight:normal}
 
 .controls{
   text-align:center;
-  margin:20px;
+  margin:15px;
 }
 
-.controls input, .controls button{
+.controls input{
   padding:8px;
   font-size:16px;
-  margin:5px;
 }
 
-button{
-  background:var(--primary);
-  color:#fff;
+.controls button{
+  padding:8px 16px;
+  font-size:16px;
+  background:#fff;
   border:none;
   cursor:pointer;
 }
 
-button:hover{opacity:.85}
-
 .bracket{
   display:flex;
   justify-content:space-between;
+  height:calc(100vh - 240px);
   padding:20px;
-  height:calc(100vh - 260px);
 }
 
 .girone{
@@ -74,63 +64,84 @@ button:hover{opacity:.85}
   display:flex;
 }
 
+.girone.reverse{
+  flex-direction:row-reverse;
+}
+
 .round{
   flex:1;
   display:flex;
   flex-direction:column;
   justify-content:space-around;
+  position:relative;
 }
 
 .match{
-  background:rgba(255,255,255,0.12);
-  border-left:4px solid var(--accent1);
-  padding:6px;
-  margin:10px;
+  background:rgba(255,255,255,0.15);
   border-radius:6px;
+  padding:6px;
+  position:relative;
+}
+
+.match:after{
+  content:"";
+  position:absolute;
+  top:50%;
+  right:-20px;
+  width:20px;
+  height:2px;
+  background:#fff;
+}
+
+.reverse .match:after{
+  left:-20px;
+  right:auto;
 }
 
 .team{
   display:flex;
   align-items:center;
-  margin:3px 0;
+  margin:4px 0;
 }
 
-.team input{
+.team input.name{
   flex:1;
   padding:4px;
-  font-size:14px;
+  max-width:150px;
+  maxlength:15;
 }
 
-.team .score{
-  width:35px;
-  margin-left:5px;
+.team input.score{
+  width:32px;
+  margin-left:4px;
+  text-align:center;
 }
 
 .team button{
-  margin-left:5px;
+  margin-left:4px;
   background:var(--accent2);
-}
-
-.time{
-  margin-top:5px;
-}
-
-.time input{
-  width:100%;
-  padding:4px;
-  font-size:13px;
+  border:none;
+  color:#fff;
+  cursor:pointer;
 }
 
 .bye{
-  margin-left:5px;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:var(--bye);
+  margin-left:6px;
+  opacity:.3;
   cursor:pointer;
-  font-size:18px;
-  opacity:.4;
 }
 
-.bye.active{
-  opacity:1;
-  color:var(--accent2);
+.bye.active{opacity:1;box-shadow:0 0 6px var(--bye)}
+
+.time input{
+  width:100%;
+  margin-top:4px;
+  padding:3px;
+  font-size:12px;
 }
 
 .center{
@@ -141,19 +152,12 @@ button:hover{opacity:.85}
   justify-content:center;
 }
 
-.trophy{
-  font-size:80px;
-}
+.trophy{font-size:80px}
 
 .final input{
   width:90%;
   padding:6px;
   margin:5px auto;
-}
-
-@media (max-width:1400px){
-  h1{font-size:4vw}
-  h2{font-size:2vw}
 }
 </style>
 </head>
@@ -166,121 +170,96 @@ button:hover{opacity:.85}
   <h2>KION PLAY-OFFS 2026</h2>
 </header>
 
-<div class="controls">
+<div class="controls" id="controls">
   Numero squadre:
   <input type="number" id="numTeams" min="2" value="8">
   <button onclick="setup()">Crea Torneo</button>
 </div>
 
 <div class="bracket">
+  <div class="girone" id="A"></div>
 
-  <!-- GIRONE A -->
-  <div class="girone" id="gironeA"></div>
-
-  <!-- FINALE -->
   <div class="center">
     <div class="trophy">🏆</div>
     <div class="final">
-      <input placeholder="Finalista A">
-      <input placeholder="Finalista B">
-      <input placeholder="Risultato finale">
+      <input placeholder="Finalista A" maxlength="15">
+      <input placeholder="Finalista B" maxlength="15">
+      <input placeholder="Risultato">
       <input placeholder="Tempo di gioco">
     </div>
   </div>
 
-  <!-- GIRONE B -->
-  <div class="girone" id="gironeB"></div>
-
+  <div class="girone reverse" id="B"></div>
 </div>
 
 <script>
 function setup(){
-  const n = parseInt(numTeams.value);
-  if(n<2)return;
+  document.getElementById("controls").remove();
 
-  let teams = [];
-  for(let i=0;i<n;i++){
-    teams.push("Squadra "+(i+1));
-  }
+  let n = +numTeams.value;
+  let teams = Array.from({length:n},(_,i)=>"Squadra "+(i+1));
+  teams.sort(()=>Math.random()-0.5);
 
-  teams = shuffle(teams);
-
-  const mid = Math.ceil(teams.length/2);
-  buildGirone("gironeA", teams.slice(0,mid));
-  buildGirone("gironeB", teams.slice(mid));
+  let mid = Math.ceil(teams.length/2);
+  build("A",teams.slice(0,mid));
+  build("B",teams.slice(mid));
 }
 
-function buildGirone(id, teams){
-  const container = document.getElementById(id);
-  container.innerHTML = "";
+function build(id,teams){
+  let g=document.getElementById(id);
+  let r=Math.ceil(Math.log2(teams.length));
+  let s=2**r;
+  while(teams.length<s)teams.push("");
 
-  let rounds = Math.ceil(Math.log2(teams.length));
-  let slots = Math.pow(2, rounds);
-
-  while(teams.length < slots) teams.push("");
-
-  for(let r=0;r<rounds;r++){
-    const col = document.createElement("div");
+  for(let i=0;i<r;i++){
+    let col=document.createElement("div");
     col.className="round";
-
-    const matches = Math.pow(2, rounds-r-1);
-    for(let m=0;m<matches;m++){
-      col.appendChild(createMatch());
-    }
-    container.appendChild(col);
+    for(let m=0;m<2**(r-i-1);m++)col.appendChild(match());
+    g.appendChild(col);
   }
 
-  // primo turno
-  const firstRound = container.querySelector(".round");
-  const inputs = firstRound.querySelectorAll(".team input");
-  teams.forEach((t,i)=>inputs[i].value=t);
+  g.querySelectorAll(".name").forEach((i,x)=>i.value=teams[x]||"");
 }
 
-function createMatch(){
-  const match = document.createElement("div");
-  match.className="match";
-
+function match(){
+  let m=document.createElement("div");
+  m.className="match";
   for(let i=0;i<2;i++){
-    const team = document.createElement("div");
-    team.className="team";
+    let t=document.createElement("div");
+    t.className="team";
 
-    const input = document.createElement("input");
-    input.placeholder="Team name";
+    let n=document.createElement("input");
+    n.className="name";
+    n.maxLength=15;
 
-    const score = document.createElement("input");
-    score.className="score";
-    score.placeholder="0";
+    let s=document.createElement("input");
+    s.className="score";
+    s.maxLength=2;
+    s.oninput=()=>s.value=s.value.replace(/\D/g,'');
 
-    const win = document.createElement("button");
-    win.textContent="✔";
-    win.onclick=()=>advance(match,input.value);
+    let b=document.createElement("button");
+    b.textContent="✔";
+    b.onclick=()=>advance(m,n.value);
 
-    const bye = document.createElement("span");
-    bye.textContent="★";
+    let bye=document.createElement("div");
     bye.className="bye";
     bye.onclick=()=>bye.classList.toggle("active");
 
-    team.append(input,score,win,bye);
-    match.appendChild(team);
+    t.append(n,s,b,bye);
+    m.appendChild(t);
   }
-
-  const time = document.createElement("div");
+  let time=document.createElement("div");
   time.className="time";
   time.innerHTML='<input placeholder="Tempo di gioco">';
-  match.appendChild(time);
-
-  return match;
+  m.appendChild(time);
+  return m;
 }
 
-function advance(match, team){
-  const next = match.parentElement.nextElementSibling;
-  if(!next)return;
-  const target = next.querySelector("input");
-  if(target && !target.value) target.value = team;
-}
-
-function shuffle(a){
-  return a.sort(()=>Math.random()-0.5);
+function advance(m,v){
+  let n=m.parentElement.nextElementSibling;
+  if(!n)return;
+  let i=n.querySelector(".name");
+  if(i&&!i.value)i.value=v;
 }
 </script>
 
