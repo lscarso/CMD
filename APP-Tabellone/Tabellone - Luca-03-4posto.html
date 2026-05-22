@@ -291,6 +291,18 @@ header h2{
   font-size:13px;
 }
 .final input::placeholder{ color: rgba(255,255,255,.7); }
+/* Titoli box Finale e 3°/4° */
+.final-title{
+  font-weight:800;
+  letter-spacing:.2px;
+  margin:2px 0 6px;
+  font-size:14px;
+  opacity:.95;
+}
+.thirdplace{
+  margin-top:10px;
+}
+
 
 /* SVG per linee */
 svg.lines{
@@ -357,11 +369,21 @@ svg.lines{
 
       <div class="center">
         <div class="trophy">🏆</div>
+
         <div class="final">
+          <div class="final-title">Finale</div>
           <input id="finalA" placeholder="Finalista A" maxlength="15">
           <input id="finalB" placeholder="Finalista B" maxlength="15">
           <input id="finalScore" placeholder="Risultato finale (es. 10-8)">
           <input id="finalTime" placeholder="Tempo di gioco (es. 08:30)">
+        </div>
+
+        <div class="final thirdplace">
+          <div class="final-title">3° / 4° posto</div>
+          <input id="thirdA" placeholder="Semifinalista A" maxlength="15">
+          <input id="thirdB" placeholder="Semifinalista B" maxlength="15">
+          <input id="thirdScore" placeholder="Risultato (es. 10-8)">
+          <input id="thirdTime" placeholder="Tempo di gioco (es. 08:30)">
         </div>
       </div>
 
@@ -653,157 +675,63 @@ function drawLines(gid){
   const svg = g.querySelector("svg.lines");
   if(!svg) return;
 
+  // pulisci
   svg.innerHTML = "";
 
   const rounds = bracketState[gid].rounds;
   if(rounds <= 1) return;
 
   const gRect = g.getBoundingClientRect();
-  const reverse = bracketState[gid].reverse; // A=false, B=true
 
-  // Direzione di flusso: A (+) verso destra, B (-) verso sinistra
-  const dir = reverse ? -1 : +1;
-
-  // Parametri (puoi ritoccarli)
-  const OUT = 12;      // quanto fuori dal box (punto di attacco)
-  const PAD = 20;      // tratto orizzontale nella direzione di flusso (prima/dopo la corsia)
-  const MARGIN = 10;   // margine di sicurezza dal bordo delle colonne (evita contatto coi box)
-  const STROKE = 2;
-
-  // Anchor esterni
-  function rightOutside(el){
+  function centerRight(el){
     const r = el.getBoundingClientRect();
-    return { x: (r.right - gRect.left) + OUT, y: (r.top - gRect.top) + r.height/2 };
+    return { x: (r.right - gRect.left), y: (r.top - gRect.top + r.height/2) };
   }
-  function leftOutside(el){
+  function centerLeft(el){
     const r = el.getBoundingClientRect();
-    return { x: (r.left - gRect.left) - OUT, y: (r.top - gRect.top) + r.height/2 };
+    return { x: (r.left - gRect.left), y: (r.top - gRect.top + r.height/2) };
   }
 
-  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
-  function addPath(d){
-    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
-    path.setAttribute("d", d);
-    path.setAttribute("fill","none");
-    path.setAttribute("stroke","rgba(255,255,255,.85)");
-    path.setAttribute("stroke-width", String(STROKE));
-    path.setAttribute("stroke-linecap","round");
-    path.setAttribute("stroke-linejoin","round");
-    svg.appendChild(path);
-  }
-
-  // ---------------------------
-  // Link tra round: n -> n+1
-  // ---------------------------
+  // per ogni round r -> r+1 collego match m -> floor(m/2)
   for(let r=0; r<rounds-1; r++){
     const col = findRoundColumn(gid, r);
     const nextCol = findRoundColumn(gid, r+1);
     if(!col || !nextCol) continue;
 
-    const colRect = col.getBoundingClientRect();
-    const nextRect = nextCol.getBoundingClientRect();
-
-    // Corridoio reale tra le due colonne (in coordinate del girone)
-    // A: tra col.right e nextCol.left
-    // B: tra nextCol.right e col.left
-    let corridorMin, corridorMax;
-    if(!reverse){
-      corridorMin = (colRect.right - gRect.left) + MARGIN;
-      corridorMax = (nextRect.left - gRect.left) - MARGIN;
-    }else{
-      corridorMin = (nextRect.right - gRect.left) + MARGIN;
-      corridorMax = (colRect.left - gRect.left) - MARGIN;
-    }
-
-    const safeMin = Math.min(corridorMin, corridorMax);
-    const safeMax = Math.max(corridorMin, corridorMax);
-
-    // Corsia centrale nel corridoio
-    const railX = clamp((corridorMin + corridorMax) / 2, safeMin, safeMax);
-
     const matches = col.querySelectorAll(".match");
     const nextMatches = nextCol.querySelectorAll(".match");
 
     matches.forEach((matchEl, mIdx) => {
-      const targetIdx = Math.floor(mIdx / 2);
+      const targetIdx = Math.floor(mIdx/2);
       const targetEl = nextMatches[targetIdx];
       if(!targetEl) return;
 
-      // ✅ Start/End secondo richiesta:
-      // Girone A: start dal bordo destro del match n, end al bordo sinistro del match n+1
-      // Girone B: start dal bordo sinistro del match n, end al bordo destro del match n+1
-      const start = reverse ? leftOutside(matchEl) : rightOutside(matchEl);
-      const end   = reverse ? rightOutside(targetEl) : leftOutside(targetEl);
+      // direzione: girone A (sx->dx): start=right, end=left
+      // girone B (reverse) (dx->sx): start=left, end=right
+      const reverse = bracketState[gid].reverse;
+      const start = reverse ? centerLeft(matchEl) : centerRight(matchEl);
+      const end   = reverse ? centerRight(targetEl) : centerLeft(targetEl);
 
-      // PAD coerente (stessa direzione del flusso) sia in uscita che in ingresso:
-      // A: pad verso destra => end deve essere raggiunto da sinistra (x3 < end.x)
-      // B: pad verso sinistra => end deve essere raggiunto da destra (x3 > end.x)
-      const x1 = clamp(start.x + dir * PAD, safeMin, safeMax);
-      const x3 = clamp(end.x   - dir * PAD, safeMin, safeMax);
-      
-      // Path: start -> PAD -> rail -> vertical -> PAD -> end
-      // Tutti i punti intermedi (x1, railX, x3) stanno nel corridoio => mai sopra i box.
+      // path a gomito: start -> midX -> end (verticale)
+      const midX = reverse ? (start.x - 5) : (start.x + 5);
+
       const d = [
         `M ${start.x} ${start.y}`,
-        `L ${x1} ${start.y}`,
-        `L ${railX} ${start.y}`,
-        `L ${railX} ${end.y}`,
-        `L ${x3} ${end.y}`,
+        `L ${midX} ${start.y}`,
+        `L ${midX} ${end.y}`,
         `L ${end.x} ${end.y}`
       ].join(" ");
 
-      addPath(d);
+      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      path.setAttribute("d", d);
+      path.setAttribute("fill","none");
+      path.setAttribute("stroke","rgba(255,255,255,.85)");
+      path.setAttribute("stroke-width","2");
+      path.setAttribute("stroke-linecap","round");
+      path.setAttribute("stroke-linejoin","round");
+      svg.appendChild(path);
     });
   }
-
-  // ---------------------------
-  // Collegamento alla finale (finalA / finalB)
-  // ---------------------------
-  const lastCol = findRoundColumn(gid, rounds - 1);
-  const lastMatch = lastCol ? lastCol.querySelector(".match") : null;
-
-  const finalInput = document.getElementById(gid === "A" ? "finalA" : "finalB");
-  if(!lastMatch || !finalInput) return;
-
-  // start dall’ultimo match del girone:
-  const startF = reverse ? leftOutside(lastMatch) : rightOutside(lastMatch);
-
-  // end sul box finale: A entra a sinistra di finalA, B entra a destra di finalB
-  const fr = finalInput.getBoundingClientRect();
-  const endF = {
-    x: (!reverse ? (fr.left - gRect.left) - OUT : (fr.right - gRect.left) + OUT),
-    y: (fr.top - gRect.top) + fr.height / 2
-  };
-
-  // Corridoio tra ultimo round e box finale
-  const lastRect = lastCol.getBoundingClientRect();
-  let corridorMinF, corridorMaxF;
-  if(!reverse){
-    corridorMinF = (lastRect.right - gRect.left) + MARGIN;
-    corridorMaxF = (fr.left - gRect.left) - MARGIN;
-  }else{
-    corridorMinF = (fr.right - gRect.left) + MARGIN;
-    corridorMaxF = (lastRect.left - gRect.left) - MARGIN;
-  }
-
-  const safeMinF = Math.min(corridorMinF, corridorMaxF);
-  const safeMaxF = Math.max(corridorMinF, corridorMaxF);
-  const railXF = clamp((corridorMinF + corridorMaxF)/2, safeMinF, safeMaxF);
-
-  const x1F = clamp(startF.x + dir * PAD, safeMinF, safeMaxF);
-  const x3F = clamp(endF.x   - dir * PAD, safeMinF, safeMaxF);
-
-  const dF = [
-    `M ${startF.x} ${startF.y}`,
-    `L ${x1F} ${startF.y}`,
-    `L ${railXF} ${startF.y}`,
-    `L ${railXF} ${endF.y}`,
-    `L ${x3F} ${endF.y}`,
-    `L ${endF.x} ${endF.y}`
-  ].join(" ");
-
-  addPath(dF);
 }
 
 /* ---------------- Setup principale ---------------- */
